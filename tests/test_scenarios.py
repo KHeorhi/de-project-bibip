@@ -110,14 +110,14 @@ class TestCarServiceScenarios:
             service.add_car(car)
 
     def test_add_new_car(self, tmpdir: str, card_data: list[Car], model_data: list[Model]) -> None:
-        service = CarService()
+        service = CarService(tmpdir)
 
         self._fill_initial_data(service, card_data, model_data)
 
         assert True
 
     def test_sell_car(self, tmpdir: str, card_data: list[Car], model_data: list[Model]) -> None:
-        service = CarService()
+        service = CarService(tmpdir)
 
         self._fill_initial_data(service, card_data, model_data)
 
@@ -134,7 +134,7 @@ class TestCarServiceScenarios:
         assert res.status == CarStatus.sold
 
     def test_list_cars_by_available_status(self, tmpdir: str, card_data: list[Car], model_data: list[Model]):
-        service = CarService()
+        service = CarService(tmpdir)
 
         self._fill_initial_data(service, card_data, model_data)
 
@@ -143,7 +143,7 @@ class TestCarServiceScenarios:
         assert service.get_cars(CarStatus.available) == available_cars
 
     def test_list_full_info_by_vin(self, tmpdir: str, card_data: list[Car], model_data: list[Model]):
-        service = CarService()
+        service = CarService(tmpdir)
 
         self._fill_initial_data(service, card_data, model_data)
 
@@ -183,7 +183,7 @@ class TestCarServiceScenarios:
         assert service.get_car_info("KNAGM4A77D5316538") == full_info_with_sale
 
     def test_update_vin(self, tmpdir: str, card_data: list[Car], model_data: list[Model]):
-        service = CarService()
+        service = CarService(tmpdir)
 
         full_info_no_sale = CarFullInfo(
             vin="KNAGM4A77D5316538",
@@ -208,7 +208,7 @@ class TestCarServiceScenarios:
         assert service.get_car_info("KNAGM4A77D5316538") is None
 
     def test_delete_sale(self, tmpdir: str, card_data: list[Car], model_data: list[Model]):
-        service = CarService()
+        service = CarService(tmpdir)
 
         self._fill_initial_data(service, card_data, model_data)
 
@@ -225,14 +225,14 @@ class TestCarServiceScenarios:
         assert car is not None
         assert car.status == CarStatus.sold
 
-        service.revert_sale("KNAGM4A77D5316538")
+        service.revert_sale("20240903#KNAGM4A77D5316538")
 
         car = service.get_car_info("KNAGM4A77D5316538")
         assert car is not None
         assert car.status == CarStatus.available
 
     def test_top_3_models_by_sales(self, tmpdir: str, card_data: list[Car], model_data: list[Model]):
-        service = CarService()
+        service = CarService(tmpdir)
 
         self._fill_initial_data(service, card_data, model_data)
 
