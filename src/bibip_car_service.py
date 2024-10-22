@@ -143,9 +143,9 @@ class CarService:
             #num_car_row: str = car_index.symbol_position
         print(f'dasdawskdmnalksjmdlajmnsdlanmlkdnmalksnmdlkanmslkdmlkasmdlkmalksdmklamslk{num_car_row=}')
 
-        if num_car_row == 0:
-            print(f'FJSDHFKJHSDKJHFKJSDHFKJHDSJKFHKJSDHFKJSDHKJFHSKJDHFKJSDHFKJSHDKJFHSJKDHFKJFSDHKJDSHFKJSHDKFJHSk')
-            return None
+        # if num_car_row == 0:
+        #     print(f'FJSDHFKJHSDKJHFKJSDHFKJHDSJKFHKJSDHFKJSDHKJFHSKJDHFKJSDHFKJSHDKJFHSJKDHFKJFSDHKJDSHFKJSHDKFJHSk')
+        #     return None
 
         with open(self._join_dir_vs_file(self.root_directory_path, self.cars_file_name), 'r') as cars_file:
             cars_file.seek(int(num_car_row) * (self.row_table_length+1))
@@ -168,10 +168,11 @@ class CarService:
                 continue
             num_sale_row: str = sale_index.symbol_position
 
-        with open(self._join_dir_vs_file(self.root_directory_path, self.sales_file_name), 'r') as sales_file:
-            sales_file.seek(int(num_sale_row) * self.row_table_length+1)
-            sale_row_value: str = sales_file.read(self.row_table_length)
-            sale_value: list = sale_row_value.strip().split(',')
+        if os.path.exists(self._join_dir_vs_file(self.root_directory_path, self.sales_file_name)):
+            with open(self._join_dir_vs_file(self.root_directory_path, self.sales_file_name), 'r') as sales_file:
+                sales_file.seek(int(num_sale_row) * self.row_table_length+1)
+                sale_row_value: str = sales_file.read(self.row_table_length)
+                sale_value: list = sale_row_value.strip().split(',')
 
         parameters: dict = dict(
             vin = vin,
