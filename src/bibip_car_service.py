@@ -126,26 +126,19 @@ class CarService:
             self.cars_index = self._add_index_in_cache_db(self._join_dir_vs_file(self.root_directory_path, self.cars_index_file_name))
 
         if not self.sales_index:
-            self.cars_index = self._add_index_in_cache_db(
+            self.sales_index = self._add_index_in_cache_db(
                 self._join_dir_vs_file(self.root_directory_path, self.sales_index_file_name))
 
         if not self.models_index:
             self.models_index = self._add_index_in_cache_db(self._join_dir_vs_file(self.root_directory_path, self.models_index_file_name))
 
-        for car_index in self.cars_index:
-            print(f'JDFSHKJSDHFKJSDHFKJHSDKJFKJSDHFKJHSDKJFHKJSDHFKSDHFKJSDHFKJSHDKFJHSKDJHFKJSDFKJHSJDKFKJSHFKJHSD3JKFHKJSHDFKJHSDKJFH   {car_index.id=} {car_index.symbol_position=}')
-            print(f'VINNNNNNNNN : {vin=}')
-            if car_index.id == vin:
-                num_car_row: str = car_index.symbol_position
-                #continue
-            #break
-            #print(f'12312312312312312312312312')
-            #num_car_row: str = car_index.symbol_position
-        print(f'dasdawskdmnalksjmdlajmnsdlanmlkdnmalksnmdlkanmslkdmlkasmdlkmalksdmklamslk{num_car_row=}')
+        cars = {car_index.id: car_index.symbol_position for car_index in self.cars_index}
 
-        # if num_car_row == 0:
-        #     print(f'FJSDHFKJHSDKJHFKJSDHFKJHDSJKFHKJSDHFKJSDHKJFHSKJDHFKJSDHFKJSHDKJFHSJKDHFKJFSDHKJDSHFKJSHDKFJHSk')
-        #     return None
+        if not vin in cars.keys():
+            return None
+
+        num_car_row: str = cars.get(vin)
+        print(f'dasdawskdmnalksjmdlajmnsdlanmlkdnmalksnmdlkanmslkdmlkasmdlkmalksdmklamslk{num_car_row=}')
 
         with open(self._join_dir_vs_file(self.root_directory_path, self.cars_file_name), 'r') as cars_file:
             cars_file.seek(int(num_car_row) * (self.row_table_length+1))
@@ -175,7 +168,7 @@ class CarService:
                 sale_value: list = sale_row_value.strip().split(',')
 
         parameters: dict = dict(
-            vin = vin,
+            vin = car_value[0],
             car_model_name = model_value[1],
             car_model_brand = model_value[2],
             price = car_value[2],
