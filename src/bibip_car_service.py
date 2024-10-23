@@ -1,5 +1,5 @@
 import os
-from typing import Union
+from typing import Union, Optional
 
 from src.models import Car, CarFullInfo, CarStatus, Model, ModelSaleStats, Sale
 
@@ -118,7 +118,7 @@ class CarService:
 
     # Задание 4. Детальная информация
     def get_car_info(self, vin: str) -> CarFullInfo | None:
-        num_car_row: int = 0
+        # num_car_row: int = 0
         num_model_row: int = 0
         num_sale_row: int = 0
 
@@ -181,7 +181,29 @@ class CarService:
 
     # Задание 5. Обновление ключевого поля
     def update_vin(self, vin: str, new_vin: str) -> Car:
-        raise NotImplementedError
+        if not self.cars_index:
+            self.cars_index = self._add_index_in_cache_db(
+                self._join_dir_vs_file(self.root_directory_path, self.cars_index_file_name))
+
+        cars = {car_index.id: car_index.symbol_position for car_index in self.cars_index}
+        cars_index = [DbIndex(id=new_vin, symbol_position=car_index.symbol_position) if car_index.id == vin else car_index for car_index in self.cars_index]
+        self.cars_index = cars_index
+        self.cars_index.sort(key=lambda x: x.id)
+
+        with open(self._join_dir_vs_file(self.root_directory_path, self.cars_index_file_name), 'w') as cars_index_file:
+            for car_index in cars_index:
+                cars_index_file.write(f'{car_index.id},{car_index.symbol_position}'.ljust(self.row_index_length))
+
+        num_car_row: Optional[str] = cars.get(vin)
+
+        with open(self._join_dir_vs_file(self.root_directory_path, self.cars_file_name), 'r+') as cars_file:
+            cars_file.seek((self.row_table_length+1) * int(num_car_row))
+            row_value: str = cars_file.read(self.row_table_length)
+            print(f'DASDASDASDASDAS :::: {row_value=}')
+            car_row_line: list = row_value.strip().split(',')
+            cars_file.seek(int(num_car_row))
+            cars_file.write(row_value.replace(car_row_line[0], new_vin).ljust(self.row_table_length))
+        return Car(vin=new_vin, model=car_row_line[1], price=car_row_line[2], date_start=car_row_line[3], status=car_row_line[4])
 
     # Задание 6. Удаление продажи
     def revert_sale(self, sales_number: str) -> Car:
