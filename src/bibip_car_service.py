@@ -91,12 +91,9 @@ class CarService:
         for car_index in self.cars_index:
             if car_index.id == sale.car_vin:
                 num_car_row: int = int(car_index.symbol_position)
-                #continue
-            #num_car_row: int = int(car_index.symbol_position)
-            #print(f'{num_car_row=}')
+
         print(f'EEEEEEEEEEEEEEEEEEEEEEE {num_car_row=}')
         with open(self._join_dir_vs_file(self.root_directory_path, self.cars_file_name), 'r+') as cars_file:
-            #print(f'{cars_file.seek(int(num_car_row) * (self.row_table_length + 1))=}')
             cars_file.seek((self.row_table_length+1) * num_car_row)
             row_value: str = cars_file.read(self.row_table_length)
             print(f'DASDASDASDASDAS :::: {row_value=}')
@@ -118,7 +115,6 @@ class CarService:
 
     # Задание 4. Детальная информация
     def get_car_info(self, vin: str) -> CarFullInfo | None:
-        # num_car_row: int = 0
         num_model_row: int = 0
         num_sale_row: int = 0
 
@@ -207,8 +203,57 @@ class CarService:
 
     # Задание 6. Удаление продажи
     def revert_sale(self, sales_number: str) -> Car:
-        raise NotImplementedError
+        car_vin: Optional[str] = None
+        with open(self._join_dir_vs_file(self.root_directory_path, self.sales_file_name), 'r') as sales_read_file:
+            file_value: list = sales_read_file.readlines()
+        with open(self._join_dir_vs_file(self.root_directory_path, self.sales_file_name), 'w') as sales_write_file:
+            for value in file_value:
+                if sales_number not in value:
+                    sales_write_file.write(value)
+                else:
+                    car_vin = value.strip().split(',')[1]
+
+        with open(self._join_dir_vs_file(self.root_directory_path,  self.sales_index_file_name), 'r') as sales_index_read_file:
+            file_value: list = sales_index_read_file.readlines()
+        with open(self._join_dir_vs_file(self.root_directory_path, self.sales_index_file_name), 'w') as sales_index_write_file:
+            for value in file_value:
+                if car_vin not in value:
+                    sales_index_write_file.write(value)
+
+        if not self.cars_index:
+            self.cars_index = self._add_index_in_cache_db(self._join_dir_vs_file(self.root_directory_path, self.cars_index_file_name))
+
+        cars = {car_index.id: car_index.symbol_position for car_index in self.cars_index}
+        num_car_row: str = cars.get(car_vin)
+
+        with open(self._join_dir_vs_file(self.root_directory_path, self.cars_file_name), 'r+') as cars_file:
+            cars_file.seek(int(num_car_row) * (self.row_table_length+1))
+            car_row_value: str = cars_file.read(self.row_table_length)
+            car_value: list = car_row_value.strip().split(',')
+            cars_file.seek(int(num_car_row) * (self.row_table_length + 1))
+            cars_file.write(car_row_value.replace(car_value[4], CarStatus.available).ljust(self.row_table_length))
+        return Car(vin=car_value[0], model=car_value[1], price=car_value[2], date_start=car_value[3], status=car_value[4])
 
     # Задание 7. Самые продаваемые модели
     def top_models_by_sales(self) -> list[ModelSaleStats]:
-        raise NotImplementedError
+        with open(self._join_dir_vs_file(self.root_directory_path, self.sales_file_name), 'r') as sales_read_file:
+            file_value: list = sales_read_file.readlines()
+
+        sales_history = dict()
+        for value in file_value:
+            value_item: list = value.strip().split(',')
+            sales_history[value_item[1]] = value_item[3]
+
+        if not self.cars_index:
+            self.cars_index = self._add_index_in_cache_db(
+                self._join_dir_vs_file(self.root_directory_path, self.cars_index_file_name))
+
+        cars_row: list = [car_index.symbol_position for car_index in self.cars_index if car_index.id in sales_history.keys()]
+
+        with open(self._join_dir_vs_file(self.root_directory_path, self.cars_file_name), 'r') as cars_read_file:
+            salon_cars: dict = {row_value.strip().split(',')[0] : row_value.strip().split(',')[1] for row_number, row_value in enumerate(cars_read_file) if row_number in cars_row}
+
+        # with open(self._join_dir_vs_file(self.root_directory_path, self.cars_file_name), 'r') as cars_read_file:
+        #     salon_cars: dict = {row_value.strip().split(',')[0]: row_value.strip().split(',')[1] for
+        #                         row_number, row_value in enumerate(cars_read_file) if row_number in cars_row}
+
