@@ -85,8 +85,8 @@ class CarService:
 
         with open(self._join_dir_vs_file(self.root_directory_path, self.sales_index_file_name), 'w+') as sales_index_file:
             for sales_index in self.sales_index:
-                string_index_model: str = f'{sales_index.id},{sales_index.symbol_position}\n'.ljust(self.row_index_length)
-                sales_index_file.write(string_index_model)# + '\n')
+                string_index_model: str = f'{sales_index.id},{sales_index.symbol_position}'.ljust(self.row_index_length)
+                sales_index_file.write(string_index_model + '\n')
         num_car_row: int = 0
         for car_index in self.cars_index:
             if car_index.id == sale.car_vin:
@@ -99,7 +99,8 @@ class CarService:
             print(f'DASDASDASDASDAS :::: {row_value=}')
             car_row_line: list = row_value.strip().split(',')
             cars_file.seek((self.row_table_length + 1) * num_car_row)
-            cars_file.write(row_value.replace(car_row_line[4], CarStatus.sold).ljust(self.row_table_length))
+            format_string = row_value.replace(car_row_line[4], CarStatus.sold).ljust(self.row_table_length)
+            cars_file.write(format_string)
 
         return Car(vin=car_row_line[0], model=car_row_line[1], price=car_row_line[2], date_start=car_row_line[3], status=CarStatus.sold)
 
@@ -248,12 +249,35 @@ class CarService:
             self.cars_index = self._add_index_in_cache_db(
                 self._join_dir_vs_file(self.root_directory_path, self.cars_index_file_name))
 
-        cars_row: list = [car_index.symbol_position for car_index in self.cars_index if car_index.id in sales_history.keys()]
-
+        cars_row: list = [int(car_index.symbol_position) for car_index in self.cars_index if car_index.id in sales_history.keys()]
+        print(f'{cars_row=}')
         with open(self._join_dir_vs_file(self.root_directory_path, self.cars_file_name), 'r') as cars_read_file:
-            salon_cars: dict = {row_value.strip().split(',')[0] : row_value.strip().split(',')[1] for row_number, row_value in enumerate(cars_read_file) if row_number in cars_row}
+            salon_cars: dict = dict()
+            # for row_number, row_value in enumerate(cars_read_file):
+            #     print(f'{row_number=},{row_value=}, {len(row_value)=}')
+            # #     if row_number in cars_row:
+            # #         salon_cars[]
+            salon_cars: dict = {row_value.strip().split(',')[0] : row_value.strip().split(',')[1] for row_number, row_value in enumerate(cars_read_file.readlines()) if row_number in cars_row and row_value != '\n'}
 
-        # with open(self._join_dir_vs_file(self.root_directory_path, self.cars_file_name), 'r') as cars_read_file:
-        #     salon_cars: dict = {row_value.strip().split(',')[0]: row_value.strip().split(',')[1] for
-        #                         row_number, row_value in enumerate(cars_read_file) if row_number in cars_row}
+        if not self.models_index:
+            self.models_index = self._add_index_in_cache_db(
+                self._join_dir_vs_file(self.root_directory_path, self.models_index_file_name))
+        for model in self.models_index:
+            print(f'{model.id=}, {model.symbol_position=}')
+        print(f'{salon_cars.values()=}')
+        models_row: list = [model_index.symbol_position for model_index in self.models_index if model_index.id in salon_cars.values()]
+        print(f'{models_row=}')
+        with open(self._join_dir_vs_file(self.root_directory_path, self.models_file_name), 'r') as models_read_file:
+            salon_models: dict = {row_value.strip().split(',')[0] : [row_value.strip().split(',')[1], row_value.strip().split(',')[2]] for row_number, row_value in enumerate(models_read_file) if str(row_number) in models_row}
 
+        print(f'{salon_cars=},\n {salon_models=},\n {sales_history=}')
+
+        pivot_table = {}
+        for car_vin, car_models in salon_cars.items():
+            value = salon_models.get(car_models)
+            pivot_table[car_vin] = value
+
+        list_total = []
+        for car_vin, value in pivot_table.items():
+            value.append(sales_history.get(car_vin))
+        print(pivot_table)
