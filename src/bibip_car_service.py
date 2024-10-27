@@ -92,11 +92,9 @@ class CarService:
             if car_index.id == sale.car_vin:
                 num_car_row: int = int(car_index.symbol_position)
 
-        print(f'EEEEEEEEEEEEEEEEEEEEEEE {num_car_row=}')
         with open(self._join_dir_vs_file(self.root_directory_path, self.cars_file_name), 'r+') as cars_file:
             cars_file.seek((self.row_table_length+1) * num_car_row)
             row_value: str = cars_file.read(self.row_table_length)
-            print(f'DASDASDASDASDAS :::: {row_value=}')
             car_row_line: list = row_value.strip().split(',')
             cars_file.seek((self.row_table_length) * num_car_row)
             format_string = row_value.replace(car_row_line[4], CarStatus.sold).ljust(self.row_table_length)
@@ -135,12 +133,10 @@ class CarService:
             return None
 
         num_car_row: str = cars.get(vin)
-        print(f'dasdawskdmnalksjmdlajmnsdlanmlkdnmalksnmdlkanmslkdmlkasmdlkmalksdmklamslk{num_car_row=}')
 
         with open(self._join_dir_vs_file(self.root_directory_path, self.cars_file_name), 'r') as cars_file:
             cars_file.seek(int(num_car_row) * (self.row_table_length+1))
             car_row_value: str = cars_file.read(self.row_table_length)
-            print(f'HYHYHYHYGHYHYHY: {car_row_value=}')
             car_value: list = car_row_value.strip().split(',')
 
         for model_index in self.models_index:
@@ -196,7 +192,6 @@ class CarService:
         with open(self._join_dir_vs_file(self.root_directory_path, self.cars_file_name), 'r+') as cars_file:
             cars_file.seek((self.row_table_length+1) * int(num_car_row))
             row_value: str = cars_file.read(self.row_table_length)
-            print(f'DASDASDASDASDAS :::: {row_value=}')
             car_row_line: list = row_value.strip().split(',')
             cars_file.seek(int(num_car_row))
             cars_file.write(row_value.replace(car_row_line[0], new_vin).ljust(self.row_table_length))
@@ -259,20 +254,21 @@ class CarService:
         models_row: list = [model_index.symbol_position for model_index in self.models_index if model_index.id in salon_cars.values()]
         with open(self._join_dir_vs_file(self.root_directory_path, self.models_file_name), 'r') as models_read_file:
             salon_models: dict = {row_value.strip().split(',')[0] : [row_value.strip().split(',')[1], row_value.strip().split(',')[2]] for row_number, row_value in enumerate(models_read_file) if str(row_number) in models_row}
-        pivot_table = []
+
+        pivot_table: list = []
         for car_vin, car_models in salon_cars.items():
             brand_model = salon_models.get(car_models)
             price = sales_history.get(car_vin)
             pivot_table.append([brand_model[0], brand_model[1], price])
         list_total = []
 
-        ertyui = []
+        group_table: list = []
         for value in salon_models.values():
             count_item = sum(i[0] == value[0] and i[1] == value[1] for i in pivot_table)
             price = sum(float(i[2]) for i in pivot_table if i[0] == value[0] and i[1] == value[1])
-            ertyui.append([value[0], value[1],count_item, price])
-        ertyui = sorted(ertyui, key=lambda x: (x[2],x[3]), reverse=True)[:3]
-        for value in ertyui:
+            group_table.append([value[0], value[1],count_item, price])
+        group_table = sorted(group_table, key=lambda x: (x[2],x[3]), reverse=True)[:3]
+        for value in group_table:
             list_total.append(ModelSaleStats(car_model_name=value[0], brand=value[1], sales_number=value[2]))
 
         return list_total[:3]
