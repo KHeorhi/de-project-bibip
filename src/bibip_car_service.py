@@ -250,34 +250,30 @@ class CarService:
                 self._join_dir_vs_file(self.root_directory_path, self.cars_index_file_name))
 
         cars_row: list = [int(car_index.symbol_position) for car_index in self.cars_index if car_index.id in sales_history.keys()]
-        print(f'{cars_row=}')
         with open(self._join_dir_vs_file(self.root_directory_path, self.cars_file_name), 'r') as cars_read_file:
             salon_cars: dict = {row_value.strip().split(',')[0] : row_value.strip().split(',')[1] for row_number, row_value in enumerate(cars_read_file.readlines()) if row_number in cars_row and row_value != '\n'}
 
         if not self.models_index:
             self.models_index = self._add_index_in_cache_db(
                 self._join_dir_vs_file(self.root_directory_path, self.models_index_file_name))
-        for model in self.models_index:
-            print(f'{model.id=}, {model.symbol_position=}')
-        print(f'{salon_cars.values()=}')
         models_row: list = [model_index.symbol_position for model_index in self.models_index if model_index.id in salon_cars.values()]
-        print(f'{models_row=}')
         with open(self._join_dir_vs_file(self.root_directory_path, self.models_file_name), 'r') as models_read_file:
             salon_models: dict = {row_value.strip().split(',')[0] : [row_value.strip().split(',')[1], row_value.strip().split(',')[2]] for row_number, row_value in enumerate(models_read_file) if str(row_number) in models_row}
-
-        print(f'{salon_cars=},\n {salon_models=},\n {sales_history=}')
-
-        pivot_table = {}
+        pivot_table = []
         for car_vin, car_models in salon_cars.items():
-            value = salon_models.get(car_models)
-            pivot_table[car_vin] = value
-        print(f'{pivot_table}')
+            brand_model = salon_models.get(car_models)
+            price = sales_history.get(car_vin)
+            pivot_table.append([brand_model[0], brand_model[1], price])
         list_total = []
 
-        count_item = {value : list(salon_cars.values()).count(value) for value in salon_models.keys()}
+        ertyui = []
+        for value in salon_models.values():
+            count_item = sum(i[0] == value[0] and i[1] == value[1] for i in pivot_table)
+            price = sum(float(i[2]) for i in pivot_table if i[0] == value[0] and i[1] == value[1])
+            ertyui.append([value[0], value[1],count_item, price])
+        ertyui = sorted(ertyui, key=lambda x: (x[2],x[3]), reverse=True)[:3]
+        for value in ertyui:
+            list_total.append(ModelSaleStats(car_model_name=value[0], brand=value[1], sales_number=value[2]))
 
-        for key, value in salon_models.items():
-            list_total.append(ModelSaleStats(car_model_name=value[0], brand=value[1], sales_number=count_item.get(key)))
-        list_total.sort(key=lambda x: x.sales_number)
-        print(list_total)
-        return list_total
+        return list_total[:3]
+
