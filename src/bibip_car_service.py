@@ -27,10 +27,18 @@ class CarService:
 
     @staticmethod
     def _join_dir_vs_file(dir_path: str, file_name: str) -> str:
+        """
+        Метод для получения полного пути к указанному файлу.
+        """
+
         return '/'.join([dir_path, file_name])
 
     @staticmethod
     def _add_index_in_cache_db(table_dir) -> list:
+        """
+        Добавление индекса в кэш базы данных.
+        """
+
         cache_index: list = []
         if os.path.exists(table_dir):
             with open(table_dir, 'r') as table_file:
@@ -41,6 +49,10 @@ class CarService:
 
     # Задание 1. Сохранение автомобилей и моделей
     def add_model(self, model: Model) -> Model:
+        """
+        Функция для сохранения моделей.
+        """
+
         with open(self._join_dir_vs_file(self.root_directory_path,self.models_file_name), 'a') as model_file:
             models_string: str = f'{model.id},{model.name},{model.brand}'.ljust(500)
             model_file.write(models_string + '\n')
@@ -58,6 +70,10 @@ class CarService:
 
     # Задание 1. Сохранение автомобилей и моделей
     def add_car(self, car: Car) -> Car:
+        """
+        Функция для сохранения автомобилей.
+        """
+
         with open(self._join_dir_vs_file(self.root_directory_path,self.cars_file_name), 'a') as cars_file:
             cars_string: str = f'{car.vin},{car.model},{car.price},{car.date_start},{car.status}'.ljust(self.row_table_length)
             cars_file.write(cars_string + '\n')
@@ -75,6 +91,10 @@ class CarService:
 
     # Задание 2. Сохранение продаж.
     def sell_car(self, sale: Sale) -> Car:
+        """
+        Функция для сохранения продаж авто.
+        """
+
         with open(self._join_dir_vs_file(self.root_directory_path, self.sales_file_name), 'a') as sale_file:
             sale_string: str = f'{sale.sales_number},{sale.car_vin},{sale.sales_date},{sale.cost}'.ljust(self.row_table_length)
             sale_file.write(sale_string + '\n')
@@ -104,6 +124,10 @@ class CarService:
 
     # Задание 3. Доступные к продаже
     def get_cars(self, status: CarStatus) -> list[Car]:
+        """
+        Функция для получения статуса о машинах в салоне.
+        """
+
         with open(self._join_dir_vs_file(self.root_directory_path, self.cars_file_name), 'r') as cars_file:
             cars_line: list[str] = cars_file.readlines()
             split_lines = [line.strip().split(',') for line in cars_line]
@@ -114,6 +138,10 @@ class CarService:
 
     # Задание 4. Детальная информация
     def get_car_info(self, vin: str) -> CarFullInfo | None:
+        """
+        Функция для получения информации о машине по vin-номеру.
+        """
+
         num_model_row: int = 0
         num_sale_row: int = 0
 
@@ -174,6 +202,10 @@ class CarService:
 
     # Задание 5. Обновление ключевого поля
     def update_vin(self, vin: str, new_vin: str) -> Car:
+        """
+        Функция для редактирования vin-номера.
+        """
+
         if not self.cars_index:
             self.cars_index = self._add_index_in_cache_db(
                 self._join_dir_vs_file(self.root_directory_path, self.cars_index_file_name))
@@ -199,6 +231,10 @@ class CarService:
 
     # Задание 6. Удаление продажи
     def revert_sale(self, sales_number: str) -> Car:
+        """
+        Функция для удаления продаж.
+        """
+
         car_vin: Optional[str] = None
         with open(self._join_dir_vs_file(self.root_directory_path, self.sales_file_name), 'r') as sales_read_file:
             file_value: list = sales_read_file.readlines()
@@ -232,6 +268,10 @@ class CarService:
 
     # Задание 7. Самые продаваемые модели
     def top_models_by_sales(self) -> list[ModelSaleStats]:
+        """
+        Функция для получения топ-3 по продажам авто.
+        """
+
         with open(self._join_dir_vs_file(self.root_directory_path, self.sales_file_name), 'r') as sales_read_file:
             file_value: list = sales_read_file.readlines()
 
